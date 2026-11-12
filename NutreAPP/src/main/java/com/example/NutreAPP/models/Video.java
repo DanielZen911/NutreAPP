@@ -1,14 +1,20 @@
 package com.example.NutreAPP.models;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.hibernate.boot.archive.scan.spi.ClassDescriptor.Categorization;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 
 public class Video {
 
@@ -28,6 +34,11 @@ public class Video {
     @Enumerated 
     @Column(name = "capacitacion_interna", nullable = false, unique = false, length = 100)
     private Categorization capacitacion_interna;
+
+    @OneToMany(mappedBy="video")
+    @JsonManagedReference (value = "video-visualizacion")
+    private Usuario usuario;
+    private List<Visualizacion> visualisaciones;
 
     public Video() {
     }
