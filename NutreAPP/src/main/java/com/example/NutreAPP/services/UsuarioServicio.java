@@ -1,6 +1,5 @@
 package com.example.NutreAPP.services;
 
-import java.lang.module.ResolutionException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -11,82 +10,92 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.example.NutreAPP.models.Usuario;
-import com.example.NutreAPP.models.Video;
-import com.example.NutreAPP.models.Visualizacion;
 import com.example.NutreAPP.repositories.IUsuarioRepositorio;
-import com.example.NutreAPP.repositories.IVideoRepositorio;
-import com.example.NutreAPP.repositories.IVisualizacionRepositorio;
+import com.example.NutreAPP.validations.UsuarioValidacion;
 
-@Service 
-
+@Service
 public class UsuarioServicio {
-
-    //Para cocinar neceito las recetas
-    //Para programar los ervicios necesito los repositorios
-
+    // Para programar los servicios necesito los repositorios 
+    
     //INYECCION DE DEPENDENCIAS
-    @Autowired 
+
+    @Autowired
     private IUsuarioRepositorio repositorio;
 
-    //Metodo para guardar
+    @Autowired
+    private UsuarioValidacion validar;
+
+
+    //metodo guardar
     public Usuario guardar(Usuario datos){
+        this.validar.validarCorreo(datos.getCorreo());
+        this.validar.validarUsuarioNuevo(datos);
+        this.validar.validarNombre(datos.getNombre());
+        this.validar.validarContraseña(datos.getContrasenia_hash());
+        
+        
         return this.repositorio.save(datos);
     }
-
-    //Metodo para buscar po Id
+    // metodo buscar por id
     public Usuario buscarPorId(UUID id){
-        Optional<Usuario> usuarioBuscado = this.repositorio.findById(id);
-        if(!usuarioBuscado.isPresent()){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"id no encontrado");
-        }else{
+        Optional<Usuario>usuarioBuscado = this.repositorio.findById(id);
+
+        if (!usuarioBuscado.isPresent()){
+
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "id no encontrado");
+
+        } else{
             return usuarioBuscado.get();
         }
     }
-
-    //Metodo para buscar todos
+    // metodo para buscar por todos
     public List<Usuario> buscarTodos(){
         return this.repositorio.findAll();
+
     }
+    // metodo para modificar
 
-    //Metodo para actualizar (modificar)
-    public Usuario modificar(UUID id, Usuario datos){
-        if(!usuarioBuscado.isPresent()){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"id no encontrado");
-        }else{
+    public Usuario modificarUsuario(UUID id, Usuario datos){
+        
+        Optional<Usuario>usuarioBuscado = this.repositorio.findById(id);
 
-            //1. RECARGAR LA INFO QUE EXISTE ACTUALMENTE EN BD
-            Usuario usuarioEncontrado=usuarioBuscado.get();
+        if (!usuarioBuscado.isPresent()){
 
-            //2. Espacio para modificar solo las propiedades permitidas
-            usuarioEncontrado.setNombre(datos.getNombre());
-            usuarioEncontrado.setRol(datos.getRol());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "id no encontrado");
 
-            //3. Espacio para volver a guardar el usuario que se acaba de modificar
-            this.repositorio.save(usuarioEncontrado);
+        } else{
+            //1. precargar la info que existe actualmente en la base de datos
+            Usuario usuarioExistente = usuarioBuscado.get();
 
+            //2. Espacio para modificar las propiedades permitidas
+            this.validar.validarNombre(datos.getNombre());
+            usuarioExistente.setNombre(datos.getNombre());
+            usuarioExistente.setRol(datos.getRol()); 
+            
+            //3. Guardar la info modificada en la base de datos
+            return this.repositorio.save(usuarioExistente);
         }
     }
 
-    //Metodo para eliminar
+    // metdo para eliminar
+    public boolean eliminarUsuario(UUID id){
+        Optional<Usuario>usuarioBuscado = this.repositorio.findById(id);
 
-    public boolean eliminar(UUID id){
-        Optional<Usuario> usuarioBuscado = this.repositorio.findById(id);
-        if(!usuarioBuscado.isPresent()){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"id no encontrado");
-        }else{
+        if (!usuarioBuscado.isPresent()){
+
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "id no encontrado");
+
+        } else{
             this.repositorio.deleteById(id);
             return true;
         }
-
-
+        
     }
+    
 
-    //Metodo para buscar por departamento y rol
 
-    //Metodo para buscar por correo
-
-    //Metodo para rol
-
-    //Metodo para verificar correo
-
+    //metodo para buscar por departamento y rol
+    //metodo para buscar por correo
+    // metodo para buscar por rol
+    //metodo para verificar correo
 }
